@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Batch Attendance Report</title>
+    <link rel="stylesheet" 
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" 
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    
+    <style>
+        body {
+            background: linear-gradient(135deg, #f9f9f9, #e0e7ff);
+            color: #333;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .container {
+            margin-top: 30px;
+        }
+        h2.text-center {
+            background: linear-gradient(90deg, #0d6efd, #6610f2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: bold;
+        }
+        .header-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1.2rem;
+            font-weight: 500;
+            padding: 12px 18px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            margin-bottom: 20px;
+            background-color: #fdfdfe;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        .table {
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            transition: all 0.3s;
+        }
+        .table:hover {
+            box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+        }
+        .table thead {
+            background-color: #007bff;
+            color: white;
+        }
+        .table-hover tbody tr:hover {
+            background-color: #eaf4ff;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .attendance-count {
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+        .btn-view {
+            font-size: 0.9rem;
+            transition: 0.3s;
+        }
+        .btn-view:hover {
+            background-color: #0056b3;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background-color: #6c757d;
+            color: #fff;
+        }
+        .no-data-message {
+            text-align: center;
+            color: #ff4d4f;
+            font-weight: bold;
+            padding: 20px;
+            font-size: 1.2rem;
+        }
+        .no-data-message i {
+            color: #ff4d4f;
+            margin-right: 8px;
+        }
+        .btn-info {
+            background: linear-gradient(90deg, #0dcaf0, #0d6efd);
+            border: none;
+        }
+        .btn-info:hover {
+            background: linear-gradient(90deg, #0d6efd, #6610f2);
+            color: #fff;
+        }
+        .text-center.mt-3 a.btn {
+            transition: transform 0.2s;
+        }
+        .text-center.mt-3 a.btn:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2 class="text-center mb-4"><i class="fa-solid fa-chart-line"></i> Batch Attendance Report</h2>
+
+    <div class="header-info">
+        <span><i class="fa-solid fa-layer-group"></i> Batch Name: <span th:text="${batch.batchname}" class="text-primary"></span></span>
+        <span><i class="fa-solid fa-calendar-alt"></i> Month: <span th:text="${batchworkingdays.month}" class="text-success"></span></span>
+        <span><i class="fa-solid fa-calendar"></i> Year: <span th:text="${yearMonth}" class="text-success"></span></span>
+    </div>
+
+    <h5 class="text-center">Total Working Days: 
+        <span class="text-danger" th:text="${batchworkingdays.days}"></span>
+    </h5>
+
+    <div th:if="${#maps.isEmpty(monthlyperformance)}">
+        <div class="no-data-message">
+            <i class="fa-solid fa-exclamation-triangle"></i> 
+            No Performance Data Available for this Batch in this Month!
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <table class="table table-bordered table-hover table-striped text-center">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Roll Number <i class="fa fa-id-badge"></i></th>
+                        <th>Student Name <i class="fa fa-user"></i></th>
+                        <th>Phone Number <i class="fa fa-phone"></i></th>
+                        <th>Email <i class="fa fa-envelope"></i></th>
+                        <th>Total Lab Sessions <i class="fa fa-chalkboard-teacher"></i></th>
+                        <th>Labs Attended <i class="fa fa-laptop-code"></i></th>
+                        <th>Action <i class="fa fa-eye"></i></th>
+                    </tr>
+                </thead>
+               <tbody>
+				    <tr th:each="entry, iterStat : ${monthlyperformance}" th:unless="${noRecords}">
+				        <td th:text="${iterStat.count}"></td>
+				        <td th:text="${entry.key.rollnumber}"></td>
+				        <td th:text="${entry.key.name}"></td>
+				        <td th:text="${entry.key.mobileWhatsApp}"></td>
+				        <td th:text="${entry.key.email}"></td>
+				        <td th:text="${batchworkingdays.days}"></td>
+				        <td class="attendance-count text-success" th:text="${entry.value}"></td>
+				        <td>
+				            <a th:href="@{/attendance/viewdetails/{id}(id=${entry.key.id}, month=${yearMonth})}" 
+				               class="btn btn-info btn-sm btn-view"><i class="fa fa-eye"></i> View</a>
+				        </td>
+				    </tr>
+				</tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="text-center mt-3">
+    <a th:href="@{/batch/getbatchesbycourse/{id}(id=${batch.course.id})}" class="btn btn-secondary">
+        <i class="fa fa-arrow-left"></i> Back to Dashboard
+    </a>
+</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

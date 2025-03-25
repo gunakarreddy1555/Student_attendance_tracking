@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course Registration</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            box-sizing: border-box; /* Ensures padding doesn't affect width */
+        }
+
+        h2 {
+            margin-bottom: 20px;
+            color: #4b0082;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .form-group i {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            color: #764ba2;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 12px 12px 40px; /* Padding to create space for icon */
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: 0.3s;
+            box-sizing: border-box;
+        }
+
+        .form-group input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 8px rgba(102, 126, 234, 0.6);
+            outline: none;
+        }
+
+        button {
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border: none;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+            width: 100%; /* Make button width 100% */
+            margin-top: 20px;
+        }
+
+        button:hover {
+            background: linear-gradient(90deg, #764ba2, #667eea);
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .back-link {
+            display: block;
+            margin-top: 20px;
+            color: #764ba2;
+            text-decoration: none;
+            transition: 0.3s;
+        }
+
+        .back-link:hover {
+            color: #667eea;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2><i class="fa-solid fa-book-open-reader"></i> Register New Course</h2>
+        <form action="/savecourse" method="post">
+            <div class="form-group">
+                <i class="fa-solid fa-graduation-cap"></i>
+                <input type="text" name="course" placeholder="Course Name" required>
+            </div>
+            <div class="form-group">
+                <i class="fa-solid fa-hourglass-half"></i>
+                <input type="text" name="duration" placeholder="Course Duration (e.g., 3 months)" required>
+            </div>
+            <button type="submit"><i class="fa-solid fa-plus"></i> Register Course</button>
+            <a href="/" class="back-link"><i class="fa-solid fa-arrow-left"></i> Go Back</a>
+        </form>
+    </div>
+</body>
+</html>

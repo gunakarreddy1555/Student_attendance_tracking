@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Batch Registration</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #f9d0ff, #d0f9ff);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .form-container {
+            max-width: 600px;
+            margin: 80px auto;
+            background-color: white;
+            border-radius: 25px;
+            box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            transition: transform 0.3s;
+        }
+        .form-container:hover {
+            transform: translateY(-5px);
+        }
+        h2 {
+            text-align: center;
+            color: #6a11cb;
+            font-weight: bold;
+            margin-bottom: 30px;
+        }
+        label {
+            color: #555;
+            font-weight: 500;
+        }
+        .btn-cute {
+            background: linear-gradient(135deg, #ff89c9, #6a11cb);
+            color: white;
+            border: none;
+            transition: 0.3s;
+        }
+        .btn-cute:hover {
+            background: linear-gradient(135deg, #6a11cb, #ff89c9);
+            box-shadow: 0px 4px 15px rgba(106, 17, 203, 0.4);
+        }
+    </style>
+</head>
+<body>
+
+<div class="form-container">
+    <h2>Register Batch</h2>
+    <form id="batchForm">
+        <div class="mb-3">
+            <label for="coursename" class="form-label">Course Name</label>
+            <input type="text" class="form-control" id="coursename" name="coursename" 
+                   th:value="${course.coursename}" readonly>
+        </div>
+        <div class="mb-3">
+            <label for="batchname" class="form-label">Batch Name</label>
+            <input type="text" class="form-control" id="batchname" name="batchname" placeholder="Enter batch name" required>
+            <small id="batchNameMsg" class="form-text"></small>
+        </div>
+        <div class="mb-3">
+            <label for="startdate" class="form-label">Start Date</label>
+            <input type="date" class="form-control" id="startdate" name="startdate" required>
+        </div>
+
+        <input type="hidden" id="courseId" name="courseId" th:value="${course.id}">
+
+        <div class="text-center">
+            <button type="submit" class="btn btn-cute px-4 py-2" id="submitBtn" disabled>Register Batch</button>
+        </div>
+    </form>
+</div>
+
+<!-- Success Modal -->
+<div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title" id="successModalLabel">Success</h5>
+      </div>
+      <div class="modal-body text-center">
+        ✅ Batch is added successfully!
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-success" id="okBtn">OK</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Error Modal -->
+<div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title" id="errorModalLabel">Error</h5>
+      </div>
+      <div class="modal-body text-center">
+        ❌ Data not inserted. Please try again!
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+    $(document).ready(function(){
+
+        // Check batch name availability
+        $("#batchname").on('keyup', function(){
+            var batchName = $(this).val().trim();
+            var courseId = $("#courseId").val();
+            if(batchName.length > 0){
+                $.ajax({
+                    url: '/batch/checkBatchName',
+                    type: 'GET',
+                    data: { batchName: batchName, courseId: courseId },
+                    success: function(response){
+                        if(response.exists){
+                            $("#batchNameMsg").text("⚠️ Batch with this name already exists!").css("color", "red");
+                            $("#submitBtn").prop('disabled', true);
+                        } else {
+                            $("#batchNameMsg").text("✅ No batch with this name found.").css("color", "green");
+                            $("#submitBtn").prop('disabled', false);
+                        }
+                    },
+                    error: function(){
+                        $("#batchNameMsg").text("").css("color", "");
+                        $("#submitBtn").prop('disabled', true);
+                    }
+                });
+            } else {
+                $("#batchNameMsg").text("");
+                $("#submitBtn").prop('disabled', true);
+            }
+        });
+
+        // Submit form
+        $("#batchForm").on('submit', function(e){
+            e.preventDefault();
+
+            var formData = {
+                batchName: $("#batchname").val(),
+                startDate: $("#startdate").val(),
+                courseId: $("#courseId").val()
+            };
+
+            $.ajax({
+                url: '/batch/addBatch',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(formData),
+                success: function(response) {
+                    if(response.status === "success"){
+                        $('#successModal').modal('show');
+                        $("#okBtn").data('course-id', response.courseId);
+                    } else {
+                        $('#errorModal').modal('show');
+                        setTimeout(function(){
+                            $('#errorModal').modal('hide');
+                        }, 3000);
+                    }
+                },
+                error: function(){
+                    $('#errorModal').modal('show');
+                    setTimeout(function(){
+                        $('#errorModal').modal('hide');
+                    }, 3000);
+                }
+            });
+        });
+
+        $("#okBtn").on('click', function(){
+            var courseId = $(this).data('course-id');
+            window.location.href = "/batch/getbatchesbycourse/" + courseId;
+        });
+    });
+</script>
+
+</body>
+</html>

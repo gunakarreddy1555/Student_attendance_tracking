@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Registration</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #f9d0ff, #d0f9ff);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .registration-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 35px;
+            width: 450px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+        .form-control {
+            border-radius: 12px;
+        }
+        .btn-primary {
+            width: 100%;
+            border-radius: 12px;
+            background-color: #ff80bf;
+            border: none;
+        }
+        .btn-primary:hover {
+            background-color: #ff4da6;
+        }
+        .input-icon {
+            margin-right: 8px;
+            color: #ff4da6;
+        }
+        .status-text {
+            font-size: 0.85rem;
+            margin-top: 2px;
+        }
+        .success-text {
+            color: green;
+        }
+        .error-text {
+            color: red;
+        }
+        .modal-content {
+            border-radius: 15px;
+        }
+    </style>
+</head>
+<body>
+<div class="registration-card">
+    <h3 class="text-center mb-3">Student Registration</h3>
+    <p class="text-center text-info fw-bold" th:text="'Course: ' + ${batch.course.coursename} + ' | Batch: ' + ${batch.batchname}"></p>
+
+    <form id="studentForm">
+        <input type="hidden" name="batchid" th:value="${batch.id}">
+
+        <div class="mb-3">
+            <label class="form-label"><i class="fas fa-user input-icon"></i> Name</label>
+            <input type="text" class="form-control" name="name" required>
+        </div>
+        <div class="mb-3">
+            <label class="form-label"><i class="fab fa-whatsapp input-icon"></i> WhatsApp Number</label>
+            <input type="text" class="form-control" name="mobileWhatsApp" id="mobileWhatsApp" required>
+            <div id="mobileMsg" class="status-text"></div>
+        </div>
+        <div class="mb-3">
+            <label class="form-label"><i class="fas fa-phone input-icon"></i> Alternate Mobile Number</label>
+            <input type="text" class="form-control" name="alternateMobileNumber" required>
+        </div>
+        <div class="mb-3">
+            <label class="form-label"><i class="fas fa-envelope input-icon"></i> Email</label>
+            <input type="email" class="form-control" name="email" id="email" required>
+            <div id="emailMsg" class="status-text"></div>
+        </div>
+        <button type="submit" class="btn btn-primary mt-3" id="submitBtn">Register</button>
+    </form>
+</div>
+
+<!-- Success Modal -->
+<div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content shadow">
+      <div class="modal-header bg-success text-white rounded-top">
+        <h5 class="modal-title" id="successModalLabel">Success</h5>
+      </div>
+      <div class="modal-body text-center">
+        ✅ Student registered successfully!
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-success" id="okBtn">OK</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Error Modal -->
+<div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content shadow">
+      <div class="modal-header bg-danger text-white rounded-top">
+        <h5 class="modal-title" id="errorModalLabel">Error</h5>
+      </div>
+      <div class="modal-body text-center">
+        ❌ Something went wrong. Please try again!
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+$(document).ready(function () {
+    function validateFields() {
+        if ($("#mobileMsg").hasClass("text-danger") || $("#emailMsg").hasClass("text-danger")) {
+            $("#submitBtn").prop("disabled", true);
+        } else {
+            $("#submitBtn").prop("disabled", false);
+        }
+    }
+    
+    $("#mobileWhatsApp").on("keyup", function () {
+        let mobile = $(this).val().trim();
+        if (mobile) {
+            $.get("/student/checkMobile", { mobile: mobile }, function (response) {
+                if (response.exists) {
+                    $("#mobileMsg").text("⚠️ Mobile number already registered!").addClass("text-danger");
+                } else {
+                    $("#mobileMsg").text("✅ Mobile number  available.").removeClass("text-danger");
+                }
+                validateFields();
+            });
+        }
+    });
+
+    $("#email").on("keyup", function () {
+        let email = $(this).val().trim();
+        if (email) {
+            $.get("/student/checkEmail", { email: email }, function (response) {
+                if (response.exists) {
+                    $("#emailMsg").text("⚠️ Email already registered!").addClass("text-danger");
+                } else {
+                    $("#emailMsg").text("✅ Email available.").removeClass("text-danger");
+                }
+                validateFields();
+            });
+        }
+    });
+
+    // Submit form
+    $("#studentForm").on("submit", function (e) {
+        e.preventDefault();
+
+        if ($("#submitBtn").prop('disabled')) {
+            alert("Please resolve errors before submitting.");
+            return;
+        }
+
+        let formData = {
+            batchid: $("input[name='batchid']").val(),
+            name: $("input[name='name']").val(),
+            mobileWhatsApp: $("input[name='mobileWhatsApp']").val(),
+            alternateMobileNumber: $("input[name='alternateMobileNumber']").val(),
+            email: $("input[name='email']").val()
+        };
+
+        $("#submitBtn").prop("disabled", true).text("Registering...");
+
+        $.ajax({
+            url: '/student/registerStudent',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(formData),
+            success: function (response) {
+                if (response === 'success') {
+                    const successModal = new bootstrap.Modal(document.getElementById('successModal'));
+                    successModal.show();
+                    $("#studentForm")[0].reset();
+                    $("#mobileMsg").text("");
+                    $("#emailMsg").text("");
+
+                    $("#okBtn").click(function () {
+                        successModal.hide();
+                    });
+                } else {
+                    const errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
+                    errorModal.show();
+                }
+                $("#submitBtn").prop("disabled", false).text("Register");
+            },
+            error: function () {
+                const errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
+                errorModal.show();
+                $("#submitBtn").prop("disabled", false).text("Register");
+            }
+        });
+    });
+});
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

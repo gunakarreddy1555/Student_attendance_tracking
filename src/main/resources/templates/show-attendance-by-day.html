@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Attendance By Day</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .table th {
+            background-color: #343a40;
+            color: white;
+        }
+        .status-present {
+            color: green;
+            font-weight: bold;
+        }
+        .status-absent {
+            color: red;
+            font-weight: bold;
+        }
+        .card {
+            border-radius: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        h2, h5 {
+            color: #343a40;
+        }
+        .no-data-message {
+            font-size: 1.2rem;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+<div class="container mt-5">
+    <div class="card p-4">
+        <h2 class="text-center mb-3">
+            Attendance for Batch <span th:text="${batch.batchname}"></span> 
+        </h2>
+        <h5 class="text-center mb-4">
+            Date: <span th:text="${date}"></span>
+        </h5>
+
+        <div th:if="${attendanceByday.size() > 0}">
+            <table class="table table-striped table-bordered text-center">
+                <thead>
+                    <tr>
+                        <th>Roll Number</th>
+                        <th>Student Name</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="attendance : ${attendanceByday}">
+                        <td th:text="${attendance.student.rollnumber}"></td>
+                        <td th:text="${attendance.student.name}"></td>
+                        <td>
+                            <span th:if="${attendance.status == 'P'}" class="status-present">
+                                <i class="bi bi-check-circle-fill"></i> Present
+                            </span>
+                            <span th:if="${attendance.status != 'P'}" class="status-absent">
+                                <i class="bi bi-x-circle-fill"></i> Absent
+                            </span>
+                        </td>
+                        <td th:text="${attendance.date}"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div th:if="${attendanceByday.size() == 0}" class="text-center mt-4">
+            <p class="no-data-message">
+                <i class="bi bi-exclamation-circle-fill text-warning"></i>
+                No students are present for this day in batch 
+                <strong th:text="${batch.batchname}"></strong> on 
+                <strong th:text="${date}"></strong>.
+            </p>
+        </div>
+
+        <div class="text-center mt-3">
+            <a href="/" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Back
+            </a>
+        </div>
+    </div>
+</div>
+</body>
+</html>
